@@ -16,8 +16,10 @@ public:
 
 protected:
     QVector<Face> storedFaces;
+    QMatrix4x4 transformMatrix;
 
     Varyings shadeVertex(Vertex& vertex);
+    Varyings* viewportTransform(Varyings& var);
 };
 
 #endif // FILLEDRENDERER_H
