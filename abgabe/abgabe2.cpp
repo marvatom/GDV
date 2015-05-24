@@ -24,47 +24,30 @@ void FilledRenderer::render(GdvCanvas &canvas){
 
     for (Face f : storedFaces){
         VaryingTuple varTup;
-        bool faceInScreen = true; //true if all three vertices are in the visible area (screen)
         for (int i = 0; i < 3; i++){
-            Varyings tmp = shadeVertex(f[i]);
+            Varying tmp = shadeVertex(f[i]);
 
-            Varyings* varPtr = viewportTransform(tmp);
+            Varying var = viewportTransform(tmp);
 
-            if (varPtr == NULL){
-                faceInScreen = false;
-                continue;
-            }
-
-            varTup[i] = *varPtr;
+            varTup[i] = var;
 
             //test
-            canvas.setPixel(varPtr->position.x(), varPtr->position.y(), varPtr->color);
+            canvas.setPixel(var.position.x(), var.position.y(), var.color);
         }
 
-        //TODO: process varTup
+        rasterizeFace(canvas, varTup);
     }
 
     //flush buffer
     canvas.flipBuffer();
 }
 
-Varyings* FilledRenderer::viewportTransform(Varyings &var){
-    QVector3D transformedPoint = convertFromHomogen(var.position);
+Varying FilledRenderer::viewportTransform(Varying &var){
+    //scale vartex to screen size
+    var.position.setX((var.position.x() + 1) * viewWidth / 2);
+    var.position.setY((var.position.y() + 1) * viewHeight / 2);
 
-    //check wether point coordinates are from interval (-1, 1)
-    if (transformedPoint.x() < -1 || transformedPoint.x() > 1 ||
-            transformedPoint.y() < -1 || transformedPoint.y() > 1){
-        return NULL;
-    }
-
-    scale(transformedPoint);
-
-    var.position.setX(transformedPoint.x());
-    var.position.setY(transformedPoint.y());
-    var.position.setZ(transformedPoint.z());
-    var.position.setW(1.0);
-
-    return &var;
+    return var;
 }
 
 void FilledRenderer::meshChanged(const QVector<MeshLoader::Face> &faces){
@@ -85,12 +68,19 @@ void FilledRenderer::meshChanged(const QVector<MeshLoader::Face> &faces){
     }
 }
 
-Varyings FilledRenderer::shadeVertex(Vertex& vertex){
-    Varyings var;
+Varying FilledRenderer::shadeVertex(Vertex& vertex){
+    Varying var;
     var.position = transformMatrix * vertex.position;
-
+    QVector3D transformedPoint = convertFromHomogen(var.position);
+    var.position.setX(transformedPoint.x());
+    var.position.setY(transformedPoint.y());
+    var.position.setZ(transformedPoint.z());
+    var.position.setW(1.0);
 
     var.color = vertex.color;
     return var;
 }
 
+void FilledRenderer::rasterizeFace(GdvCanvas& canvas, VaryingTuple& varTup){
+
+}

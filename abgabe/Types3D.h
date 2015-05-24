@@ -12,11 +12,11 @@ struct Vertex{
 
 typedef Tuple3<Vertex> Face;
 
-struct Varyings{
+struct Varying{
     QVector4D position;
     QVector3D color;
 };
 
-typedef Tuple3<Varyings> VaryingTuple;
+typedef Tuple3<Varying> VaryingTuple;
 #endif // TYPES3D_H
 

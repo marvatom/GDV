@@ -18,8 +18,9 @@ protected:
     QVector<Face> storedFaces;
     QMatrix4x4 transformMatrix;
 
-    Varyings shadeVertex(Vertex& vertex);
-    Varyings* viewportTransform(Varyings& var);
+    Varying shadeVertex(Vertex& vertex);
+    Varying viewportTransform(Varying& var);
+    void rasterizeFace(GdvCanvas& canvas, VaryingTuple& varTup);
 };
 
 #endif // FILLEDRENDERER_H
