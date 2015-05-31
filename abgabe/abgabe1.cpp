@@ -261,7 +261,7 @@ void Abgabe1::mousePressed(int x, int y){
     arcballActive = true;
     makeArcballVector(x, y, arcballP1);
     makeArcballVector(x, y, arcballP2);
-    std::cout << "Fixing vector P1: " << arcballP1.x() << ", " << arcballP1.y() << ", " << arcballP1.z() << std::endl;
+    //std::cout << "Fixing vector P1: " << arcballP1.x() << ", " << arcballP1.y() << ", " << arcballP1.z() << std::endl;
 }
 
 void Abgabe1::mouseMoved(int x, int y){
@@ -270,12 +270,12 @@ void Abgabe1::mouseMoved(int x, int y){
     }
     arcballSet = true;
     makeArcballVector(x, y, arcballP2);
-    std::cout << "P2: " << arcballP2.x() << ", " << arcballP2.y() << ", " << arcballP2.z() << std::endl;
+    //std::cout << "P2: " << arcballP2.x() << ", " << arcballP2.y() << ", " << arcballP2.z() << std::endl;
 }
 
 void Abgabe1::mouseReleased(int x, int y){
     arcballActive = false;
-    std::cout << "End of arball rotation" << std::endl;
+    //std::cout << "End of arball rotation" << std::endl;
 }
 
 void Abgabe1::makeArcballVector(int screenX, int screenY, QVector3D &vec){

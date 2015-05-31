@@ -3,6 +3,8 @@
 
 #include "abgabe1.h"
 #include "Types3D.h"
+#include "limits.h"
+#include "math.h"
 
 class FilledRenderer : public Abgabe1
 {
@@ -21,6 +23,9 @@ protected:
     Varying shadeVertex(Vertex& vertex);
     Varying viewportTransform(Varying& var);
     void rasterizeFace(GdvCanvas& canvas, VaryingTuple& varTup);
+    void drawVertex(int x, int y, QVector3D color, GdvCanvas& canvas);
+    void sortVaryingTuple(VaryingTuple& varTup);
+    bool inView(int x, int y);
 };
 
 #endif // FILLEDRENDERER_H
