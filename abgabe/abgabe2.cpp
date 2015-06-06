@@ -14,6 +14,8 @@ FilledRenderer::~FilledRenderer()
 void FilledRenderer::setupGUI(GdvGui &userInterface){
     Abgabe1::setupGUI(userInterface);
 
+    userInterface.addCheckBox("Z-Buffering", true, zBuffering);
+
 }
 
 QMatrix4x4 FilledRenderer::createPrtojectionMatrix(){
@@ -35,7 +37,9 @@ QMatrix4x4 FilledRenderer::createPrtojectionMatrix(){
 void FilledRenderer::render(GdvCanvas &canvas){
     //clear buffer and set background color to white
     canvas.clearBuffer(QVector3D(1.0, 1.0, 1.0));
-    depthBuffer.fill(INFINITY);
+    if (zBuffering){
+        depthBuffer.fill(INFINITY);
+    }
 
     //calculate the transformation matrix
     transformMatrix = createPrtojectionMatrix() * createViewMatrix();
@@ -338,6 +342,11 @@ void FilledRenderer::sortVaryingTuple(VaryingTuple &varTup){
 
 void FilledRenderer::drawVertex(int x, int y,  Fragment &f, GdvCanvas &canvas){
     if (x < 0 || x > viewWidth - 1 || y < 0 || y > viewHeight - 1){
+        return;
+    }
+
+    if (!zBuffering){
+        canvas.setPixel(x, y, f.color);
         return;
     }
 

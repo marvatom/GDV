@@ -33,6 +33,7 @@ protected:
     virtual Fragment shadePixel(Varying& point);// = 0;
 
     QVector<float> depthBuffer;
+    bool zBuffering = true;
 };
 
 #endif // FILLEDRENDERER_H
