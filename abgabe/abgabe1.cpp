@@ -36,7 +36,8 @@ void Abgabe1::initialize(){
 void Abgabe1::setCameraVectors(){
     n.setX(camX);
     n.setY(camY);
-    n.setZ(-camDist);
+    //n.setZ(-camDist);
+    n.setZ(camDist);
     n.normalize();
 
     //setup vector v (v is orthonormal to n)
@@ -141,7 +142,7 @@ QMatrix4x4 Abgabe1::createPrtojectionMatrix(){
         QMatrix4x4 MProj(1.0, 0.0, 0.0, 0.0,
                          0.0, 1.0, 0.0, 0.0,
                          0.0, 0.0, 1.0, 0.0,
-                         0.0, 0.0, 1.0/screenDist, 0.0);
+                         0.0, 0.0, -1.0/screenDist, 0.0);
         return MProj;
     }else{
         QMatrix4x4 MProj(1.0, 0.0, 0.0, 0.0,

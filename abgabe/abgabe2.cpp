@@ -21,7 +21,7 @@ QMatrix4x4 FilledRenderer::createPrtojectionMatrix(){
         QMatrix4x4 MProj(1.0, 0.0, 0.0, 0.0,
                          0.0, 1.0, 0.0, 0.0,
                          0.0, 0.0, 1.0, 0.0,
-                         0.0, 0.0, 1.0/screenDist, 0.0);
+                         0.0, 0.0, -1.0/screenDist, 0.0);
         return MProj;
     }else{
         QMatrix4x4 MProj(1.0, 0.0, 0.0, 0.0,
@@ -35,7 +35,7 @@ QMatrix4x4 FilledRenderer::createPrtojectionMatrix(){
 void FilledRenderer::render(GdvCanvas &canvas){
     //clear buffer and set background color to white
     canvas.clearBuffer(QVector3D(1.0, 1.0, 1.0));
-    depthBuffer.fill(-INFINITY);
+    depthBuffer.fill(INFINITY);
 
     //calculate the transformation matrix
     transformMatrix = createPrtojectionMatrix() * createViewMatrix();
@@ -342,7 +342,7 @@ void FilledRenderer::drawVertex(int x, int y,  Fragment &f, GdvCanvas &canvas){
     }
 
     int depthBufferIndex = y * viewWidth + x;
-    if (f.depth > depthBuffer[depthBufferIndex]){
+    if (f.depth < depthBuffer[depthBufferIndex]){
         canvas.setPixel(x, y, f.color);
         depthBuffer[depthBufferIndex] = f.depth;
     }
