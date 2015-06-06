@@ -1,4 +1,5 @@
 #include "abgabe2.h"
+#include <iostream>
 
 FilledRenderer::FilledRenderer()
 {
@@ -15,9 +16,26 @@ void FilledRenderer::setupGUI(GdvGui &userInterface){
 
 }
 
+QMatrix4x4 FilledRenderer::createPrtojectionMatrix(){
+    if (perspectiveProj){
+        QMatrix4x4 MProj(1.0, 0.0, 0.0, 0.0,
+                         0.0, 1.0, 0.0, 0.0,
+                         0.0, 0.0, 1.0, 0.0,
+                         0.0, 0.0, 1.0/screenDist, 0.0);
+        return MProj;
+    }else{
+        QMatrix4x4 MProj(1.0, 0.0, 0.0, 0.0,
+                         0.0, 1.0, 0.0, 0.0,
+                         0.0, 0.0, 1.0, 0.0, //Here is 1.0!!!!! Z-Buffering
+                         0.0, 0.0, 0.0, 1.0);
+        return MProj;
+    }
+}
+
 void FilledRenderer::render(GdvCanvas &canvas){
     //clear buffer and set background color to white
     canvas.clearBuffer(QVector3D(1.0, 1.0, 1.0));
+    depthBuffer.fill(-INFINITY);
 
     //calculate the transformation matrix
     transformMatrix = createPrtojectionMatrix() * createViewMatrix();
@@ -78,7 +96,7 @@ Varying FilledRenderer::shadeVertex(Vertex& vertex){
     QVector3D transformedPoint = convertFromHomogen(var.position);
     var.position.setX(transformedPoint.x());
     var.position.setY(transformedPoint.y());
-    var.position.setZ(transformedPoint.z());
+    //var.position.setZ(transformedPoint.z()); //Z-Value is not normalized. Z-Buffering
     var.position.setW(1.0);
 
     var.color = vertex.color;
@@ -97,12 +115,19 @@ void FilledRenderer::rasterizeFace(GdvCanvas& canvas, VaryingTuple& varTup){
             if (varTup[i].position.x() < min) min = varTup[i].position.x();
             if (varTup[i].position.x() > max) max = varTup[i].position.x();
         }
-        for (int i = min; i <= max; i++){
-            if (!inView(i, y)){
+        for (int x = min; x <= max; x++){
+            if (!inView(x, y)){
                 continue;
             }
-            QVector3D color = varTup[0].color;
-            drawVertex(i, y, color, canvas);
+            Tuple3<float> weights = calculateWeights(varTup, x, y);
+            Varying v;
+            v.position.setX(x);
+            v.position.setY(y);
+            v = interpolate(weights, varTup, v);
+            Fragment f = shadePixel(v);
+            drawVertex(x, y, f, canvas);
+            //QVector3D color = varTup[0].color;
+            //drawVertex(i, y, color, canvas);
         }
         return;
     }
@@ -110,12 +135,19 @@ void FilledRenderer::rasterizeFace(GdvCanvas& canvas, VaryingTuple& varTup){
         int min = varTup[0].position.y();
         int max = varTup[2].position.y();
         int x = varTup[0].position.x();
-        for (int i = min; i <= max; i++){
-            if (!inView(x, i)){
+        for (int y = min; y <= max; y++){
+            if (!inView(x, y)){
                 continue;
             }
-            QVector3D color = varTup[0].color;
-            drawVertex(x, i, color, canvas);
+            Tuple3<float> weights = calculateWeights(varTup, x, y);
+            Varying v;
+            v.position.setX(x);
+            v.position.setY(y);
+            v = interpolate(weights, varTup, v);
+            Fragment f = shadePixel(v);
+            drawVertex(x, y, f, canvas);
+            //QVector3D color = varTup[0].color;
+            //drawVertex(x, i, color, canvas);
         }
         return;
     }
@@ -134,8 +166,15 @@ void FilledRenderer::rasterizeFace(GdvCanvas& canvas, VaryingTuple& varTup){
             if (!inView(x, y)){
                 continue;
             }
-            QVector3D color = varTup[0].color;
-            drawVertex(x, y, color, canvas);
+            Tuple3<float> weights = calculateWeights(varTup, x, y);
+            Varying v;
+            v.position.setX(x);
+            v.position.setY(y);
+            v = interpolate(weights, varTup, v);
+            Fragment f = shadePixel(v);
+            drawVertex(x, y, f, canvas);
+            //QVector3D color = varTup[0].color;
+            //drawVertex(x, y, color, canvas);
         }
     }else{
         int m1x = varTup[1].position.x() - varTup[0].position.x();
@@ -158,8 +197,15 @@ void FilledRenderer::rasterizeFace(GdvCanvas& canvas, VaryingTuple& varTup){
                 if (!inView(x, y)){
                     continue;
                 }
-                QVector3D color = varTup[0].color;
-                drawVertex(x, y, color, canvas);
+                Tuple3<float> weights = calculateWeights(varTup, x, y);
+                Varying v;
+                v.position.setX(x);
+                v.position.setY(y);
+                v = interpolate(weights, varTup, v);
+                Fragment f = shadePixel(v);
+                drawVertex(x, y, f, canvas);
+                //QVector3D color = varTup[0].color;
+                //drawVertex(x, y, color, canvas);
             }
         }
     }
@@ -178,8 +224,15 @@ void FilledRenderer::rasterizeFace(GdvCanvas& canvas, VaryingTuple& varTup){
             if (!inView(x, y)){
                 continue;
             }
-            QVector3D color = varTup[0].color;
-            drawVertex(x, y, color, canvas);
+            Tuple3<float> weights = calculateWeights(varTup, x, y);
+            Varying v;
+            v.position.setX(x);
+            v.position.setY(y);
+            v = interpolate(weights, varTup, v);
+            Fragment f = shadePixel(v);
+            drawVertex(x, y, f, canvas);
+            //QVector3D color = varTup[0].color;
+            //drawVertex(x, y, color, canvas);
         }
     }else{
         int m2x = varTup[2].position.x() - varTup[0].position.x();
@@ -202,12 +255,73 @@ void FilledRenderer::rasterizeFace(GdvCanvas& canvas, VaryingTuple& varTup){
                 if (!inView(x, y)){
                     continue;
                 }
-                QVector3D color = varTup[0].color;
-                drawVertex(x, y, color, canvas);
+                Tuple3<float> weights = calculateWeights(varTup, x, y);
+                Varying v;
+                v.position.setX(x);
+                v.position.setY(y);
+                v = interpolate(weights, varTup, v);
+                Fragment f = shadePixel(v);
+                drawVertex(x, y, f, canvas);
+                //QVector3D color = varTup[0].color;
+                //drawVertex(x, y, color, canvas);
             }
         }
     }
 
+}
+
+Tuple3<float> FilledRenderer::calculateWeights(VaryingTuple &triangle, int x, int y){
+    QVector3D a = triangle[0].position.toVector3D();
+    QVector3D b = triangle[1].position.toVector3D();
+    QVector3D c = triangle[2].position.toVector3D();
+    QVector3D p(x, y, 0);
+
+    /*float areaABC = QVector3D::crossProduct(c-a, b-a).length();
+    float areaPBC = QVector3D::crossProduct(c-p, b-p).length();
+    float areaPCA = QVector3D::crossProduct(c-p, a-p).length();
+    float areaPAB = QVector3D::crossProduct(a-p, b-p).length();
+
+    float alpha = areaPBC / areaABC;
+    float beta = areaPCA / areaABC;
+    //float gama = 1.0 - alpha - beta;
+    float gama = areaPAB / areaABC;
+    std::cout << alpha << ", " << beta << ", " << gama << std::endl;*/
+    QVector3D v0 = b - a, v1 = c - a, v2 = p - a;
+    float d00 = QVector3D::dotProduct(v0, v0);
+    float d01 = QVector3D::dotProduct(v0, v1);
+    float d11 = QVector3D::dotProduct(v1, v1);
+    float d20 = QVector3D::dotProduct(v2, v0);
+    float d21 = QVector3D::dotProduct(v2, v1);
+    float denom = d00 * d11 - d01 * d01;
+    float beta = (d11 * d20 - d01 * d21) / denom;
+    float gama = (d00 * d21 - d01 * d20) / denom;
+    float alpha = 1.0f - beta - gama;
+
+    Tuple3<float> ret;
+    ret[0] = alpha;
+    ret[1] = beta;
+    ret[2] = gama;
+    return ret;
+}
+
+Varying FilledRenderer::interpolate(Tuple3<float> weights, VaryingTuple &triangle, Varying &point){
+    //interpolate color
+    point.color.setX(weights[0] * triangle[0].color.x() + weights[1] * triangle[1].color.x() + weights[2] * triangle[2].color.x());
+    point.color.setY(weights[0] * triangle[0].color.y() + weights[1] * triangle[1].color.y() + weights[2] * triangle[2].color.y());
+    point.color.setZ(weights[0] * triangle[0].color.z() + weights[1] * triangle[1].color.z() + weights[2] * triangle[2].color.z());
+
+    //interpolate depth (Z-coordinate)
+    point.position.setZ(weights[0] * triangle[0].position.z() + weights[1] * triangle[1].position.z() + weights[2] * triangle[2].position.z());
+
+    //return the same point with interpolated color
+    return point;
+}
+
+Fragment FilledRenderer::shadePixel(Varying &point){
+    Fragment f;
+    f.color = point.color;
+    f.depth = point.position.z();
+    return f;
 }
 
 void FilledRenderer::sortVaryingTuple(VaryingTuple &varTup){
@@ -222,12 +336,17 @@ void FilledRenderer::sortVaryingTuple(VaryingTuple &varTup){
     }
 }
 
-void FilledRenderer::drawVertex(int x, int y,  QVector3D color, GdvCanvas &canvas){
+void FilledRenderer::drawVertex(int x, int y,  Fragment &f, GdvCanvas &canvas){
     if (x < 0 || x > viewWidth - 1 || y < 0 || y > viewHeight - 1){
         return;
     }
 
-    canvas.setPixel(x, y, color);
+    int depthBufferIndex = y * viewWidth + x;
+    if (f.depth > depthBuffer[depthBufferIndex]){
+        canvas.setPixel(x, y, f.color);
+        depthBuffer[depthBufferIndex] = f.depth;
+    }
+
 }
 
 bool FilledRenderer::inView(int x, int y){
@@ -235,4 +354,11 @@ bool FilledRenderer::inView(int x, int y){
         return false;
     }
     return true;
+}
+
+void FilledRenderer::sizeChanged(unsigned int width, unsigned int height){
+    viewWidth = width;
+    viewHeight = height;
+
+    depthBuffer.resize(width * height);
 }

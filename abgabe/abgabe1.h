@@ -27,7 +27,7 @@ public:
 
 protected:
     QMatrix4x4 createViewMatrix();
-    QMatrix4x4 createPrtojectionMatrix();
+    virtual QMatrix4x4 createPrtojectionMatrix();
     QVector3D convertFromHomogen(QVector4D& v);
     void scale(QVector3D& p);
     void drawPixel(QVector3D& transformedPoint, QVector3D color, GdvCanvas& canvas);

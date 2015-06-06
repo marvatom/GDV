@@ -18,5 +18,11 @@ struct Varying{
 };
 
 typedef Tuple3<Varying> VaryingTuple;
+
+struct Fragment{
+    QVector3D color;
+    float depth;
+};
+
 #endif // TYPES3D_H
 
