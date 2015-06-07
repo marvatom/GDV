@@ -8,6 +8,8 @@
 struct Vertex{
     QVector4D position;
     QVector3D color;
+
+    QVector3D normal;
 };
 
 typedef Tuple3<Vertex> Face;
@@ -15,6 +17,8 @@ typedef Tuple3<Vertex> Face;
 struct Varying{
     QVector4D position;
     QVector3D color;
+
+    float lightIntensity = 0.0;
 };
 
 typedef Tuple3<Varying> VaryingTuple;

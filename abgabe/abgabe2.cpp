@@ -15,7 +15,7 @@ void FilledRenderer::setupGUI(GdvGui &userInterface){
     Abgabe1::setupGUI(userInterface);
 
     userInterface.addCheckBox("Z-Buffering", true, zBuffering);
-
+    userInterface.addCheckBox("Culling", true, culling);
 }
 
 QMatrix4x4 FilledRenderer::createPrtojectionMatrix(){
@@ -52,9 +52,19 @@ void FilledRenderer::render(GdvCanvas &canvas){
             Varying var = viewportTransform(tmp);
 
             varTup[i] = var;
+        }
 
-            //test
-            //canvas.setPixel(var.position.x(), var.position.y(), var.color);
+        if (culling){
+            QVector3D viewPoint(0.0, 0.0, camDist);
+            QVector3D v0 = varTup[0].position.toVector3D();
+            QVector3D v1 = varTup[1].position.toVector3D();
+            QVector3D v2 = varTup[2].position.toVector3D();
+            QVector3D faceNormal = QVector3D::crossProduct(v1 - v0, v2 - v0);
+            float testVal = QVector3D::dotProduct(v0 - viewPoint, faceNormal);
+
+            if (testVal >= 0){
+                continue;
+            }
         }
 
         rasterizeFace(canvas, varTup);
@@ -366,8 +376,7 @@ bool FilledRenderer::inView(int x, int y){
 }
 
 void FilledRenderer::sizeChanged(unsigned int width, unsigned int height){
-    viewWidth = width;
-    viewHeight = height;
+    Abgabe1::sizeChanged(width, height);
 
     depthBuffer.resize(width * height);
 }

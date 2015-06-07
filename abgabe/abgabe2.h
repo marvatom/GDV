@@ -22,7 +22,7 @@ protected:
     QMatrix4x4 transformMatrix;
 
     virtual QMatrix4x4 createPrtojectionMatrix();
-    Varying shadeVertex(Vertex& vertex);
+    virtual Varying shadeVertex(Vertex& vertex);
     Varying viewportTransform(Varying& var);
     void rasterizeFace(GdvCanvas& canvas, VaryingTuple& varTup);
     void drawVertex(int x, int y, Fragment& f, GdvCanvas& canvas);
@@ -34,6 +34,7 @@ protected:
 
     QVector<float> depthBuffer;
     bool zBuffering = true;
+    bool culling = true;
 };
 
 #endif // FILLEDRENDERER_H
