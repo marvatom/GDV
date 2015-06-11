@@ -11,6 +11,9 @@ struct Vertex{
 
     QVector3D normal;
     QVector2D textureCoord;
+
+    bool middle = false;
+    float *iter;
 };
 
 typedef Tuple3<Vertex> Face;

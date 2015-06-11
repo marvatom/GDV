@@ -112,12 +112,12 @@ QMatrix4x4 Abgabe1::createViewMatrix(){
                            0.0, 0.0, 1.0, arcballP1.z(),
                            0.0, 0.0, 0.0, 1.0);
     QMatrix4x4 ArcballX(1.0, 0.0, 0.0, 0.0,
-                        0.0, arcballU.z()/d, -arcballU.y()/d, 0.0,
-                        0.0, arcballU.y()/d, arcballU.z()/d, 0.0,
-                        0.0, 0.0, 0.0, 1.0);
-    QMatrix4x4 ArcballXInv(1.0, 0.0, 0.0, 0.0,
                         0.0, arcballU.z()/d, arcballU.y()/d, 0.0,
                         0.0, -arcballU.y()/d, arcballU.z()/d, 0.0,
+                        0.0, 0.0, 0.0, 1.0);
+    QMatrix4x4 ArcballXInv(1.0, 0.0, 0.0, 0.0,
+                        0.0, arcballU.z()/d, -arcballU.y()/d, 0.0,
+                        0.0, arcballU.y()/d, arcballU.z()/d, 0.0,
                         0.0, 0.0, 0.0, 1.0);
     QMatrix4x4 ArcballY(d, 0.0, -arcballU.x(), 0.0,
                         0.0, 1.0, 0.0, 0.0,

@@ -63,23 +63,18 @@ Varying TexturedRenderer::interpolate(Tuple3<float> weights, VaryingTuple &trian
     FilledRenderer::interpolate(weights, triangle, point);
 
     float textX = weights[0] * triangle[0].textureCoord.x() + weights[1] * triangle[1].textureCoord.x() + weights[2] * triangle[2].textureCoord.x();
+
+    textX = fabs(textX);
     if (textX > 1.0f){
-        //qDebug() << textX;
         textX = 1.0f;
     }
-    if (textX < 0.0f){
-        //qDebug() << textX;
-        textX = 0.0f;
-    }
+
     point.textureCoord.setX(textX);
     float textY = weights[0] * triangle[0].textureCoord.y() + weights[1] * triangle[1].textureCoord.y() + weights[2] * triangle[2].textureCoord.y();
+
+    textY = fabs(textY);
     if (textY > 1.0f){
-        //qDebug() << textY;
         textY = 1.0f;
-    }
-    if (textY < 0.0f){
-        //qDebug() << textY;
-        textY = 0.0f;
     }
     point.textureCoord.setY(textY);
 

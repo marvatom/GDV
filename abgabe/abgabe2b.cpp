@@ -3,7 +3,24 @@
 
 WaterRenderer::WaterRenderer()
 {
+    int rows = 20;
+    int cols = 20;
+    arrayIter = new float**[rows];
+    for (int i = 0; i < rows; ++i) {
+      arrayIter[i] = new float*[cols];
+    }
 
+    for (int i = 0; i < rows; ++i) {
+        bool zero = true;
+        for (int j = 0; j < cols; ++j) {
+            if (zero){
+                arrayIter[i][j] = new float(0.0);
+            }else{
+                arrayIter[i][j] = new float(3.1416);
+            }
+            zero = !zero;
+        }
+    }
 }
 
 WaterRenderer::~WaterRenderer()
@@ -11,133 +28,73 @@ WaterRenderer::~WaterRenderer()
 
 }
 
-/*void WaterRenderer::setupGUI(GdvGui &userInterface){
-    FilledRenderer::setupGUI(userInterface);
-}*/
 void WaterRenderer::render(GdvCanvas &canvas){
-    //clear buffer and set background color to white
-    canvas.clearBuffer(QVector3D(1.0, 1.0, 1.0));
-    /*if (zBuffering){
-        depthBuffer.fill(INFINITY);
-    }*/
-
-    //calculate the transformation matrix
-    transformMatrix = createPrtojectionMatrix() * createViewMatrix();
-
-    for (Face f : storedFaces){
-        VaryingTuple varTup;
-        for (int i = 0; i < 3; i++){
-            actY = qSin(iter);
-            iter += 0.1;
-            Varying tmp = shadeVertex(f[i]);
-
-            Varying var = viewportTransform(tmp);
-
-            varTup[i] = var;
+    int rows = 20;
+    int cols = 20;
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            *arrayIter[i][j] += 0.1;
         }
-
-        /*if (culling){
-            QVector3D viewPoint(0.0, 0.0, camDist);
-            QVector3D v0 = varTup[0].position.toVector3D();
-            QVector3D v1 = varTup[1].position.toVector3D();
-            QVector3D v2 = varTup[2].position.toVector3D();
-            QVector3D faceNormal = QVector3D::crossProduct(v1 - v0, v2 - v0);
-            float testVal = QVector3D::dotProduct(v0 - viewPoint, faceNormal);
-
-            if (testVal >= 0){
-                continue;
-            }
-        }*/
-
-        rasterizeFace(canvas, varTup);
     }
 
-    //flush buffer
-    canvas.flipBuffer();
+    FilledRenderer::render(canvas);
 }
 
 void WaterRenderer::meshChanged(const QVector<MeshLoader::Face> &faces){
-    //FilledRenderer::meshChanged(faces);
     storedFaces.clear();
 
-    /*Vertex a, b, c;
-    a.position.setX(-1.0);
-    a.position.setY(1.0);
-    a.position.setZ(0.0);
-    a.position.setW(1.0);
-    a.color.setX(1.0);
-    a.color.setY(0.0);
-    a.color.setZ(0.0);
-    b.position.setX(1.0);
-    b.position.setY(1.0);
-    b.position.setZ(0.0);
-    b.position.setW(1.0);
-    b.color.setX(0.0);
-    b.color.setY(1.0);
-    b.color.setZ(0.0);
-    c.position.setX(0.0);
-    c.position.setY(-1.0);
-    c.position.setZ(0.0);
-    c.position.setW(1.0);
-    c.color.setX(0.0);
-    c.color.setY(0.0);
-    c.color.setZ(1.0);
-    Face f;
-    f[0] = a;
-    f[1] = b;
-    f[2] = c;
-    storedFaces.append(f);*/
+    for (int y = 0; y <= 18; y += 2){
+        for (int x = 0; x <= 18; x += 2){
+            Vertex a, b, c, d, e;
 
-
-    bool diag = true;
-    bool nextDiag = true;
-    for (float x = -1.0; x <= 0.9; x += 0.1){
-        nextDiag = !nextDiag;
-        diag = nextDiag;
-        for (float y = 1.0; y >= -0.9; y -= 0.1){
-            Vertex a, b, c, d;
-
-            a.position = QVector4D(x, y, 0.0, 1.0);
+            a.position = QVector4D(x / 21.0f - 0.5f, y / 21.0f - 0.5f, 0.0, 1.0);
             a.color = QVector3D(0.0, 0.0, 1.0);
-            b.position = QVector4D(x + 0.1, y, 0.0, 1.0);
+            b.position = QVector4D((x + 2) / 21.0f - 0.5f, y / 21.0f - 0.5f, 0.0, 1.0);
             b.color = QVector3D(0.0, 0.0, 1.0);
-            c.position = QVector4D(x, y - 0.1, 0.0, 1.0);
+            c.position = QVector4D(x / 21.0f - 0.5f, (y + 2) / 21.0f - 0.5f, 0.0, 1.0);
             c.color = QVector3D(0.0, 0.0, 1.0);
-            d.position = QVector4D(x + 0.1, y - 0.1, 0.0, 1.0);
+            d.position = QVector4D((x + 2) / 21.0f - 0.5f, (y + 2) / 21.0f - 0.5f, 0.0, 1.0);
             d.color = QVector3D(0.0, 0.0, 1.0);
 
-            if (x == -1.0 && y == 1.0){
-                a.color = QVector3D(1.0, 0.0, 0.0);
-                b.color = QVector3D(1.0, 0.0, 0.0);
-                c.color = QVector3D(1.0, 0.0, 0.0);
-            }
+            e.position = QVector4D((x + 1) / 21.0f - 0.5f, (y + 1) / 21.0f - 0.5f, 0.0, 1.0);
+            e.color = QVector3D(0.0, 0.0, 1.0);
+            e.middle = true;
+            e.iter = arrayIter[y / 2][x / 2];
 
-            Face f1, f2;
-            if (diag){
-                f1[0] = a;
-                f1[1] = b;
-                f1[2] = d;
-                f2[0] = a;
-                f2[1] = d;
-                f2[2] = c;
-            }else{
-                f1[0] = a;
-                f1[1] = b;
-                f1[2] = c;
-                f2[0] = b;
-                f2[1] = d;
-                f2[2] = c;
-            }
+            Face f1, f2, f3, f4;
+
+            f1[0] = a;
+            f1[1] = b;
+            f1[2] = e;
+
+            f2[0] = b;
+            f2[1] = d;
+            f2[2] = e;
+
+            f3[0] = d;
+            f3[1] = c;
+            f3[2] = e;
+
+            f4[0] = c;
+            f4[1] = a;
+            f4[2] = e;
+
             storedFaces.append(f1);
             storedFaces.append(f2);
-
-            diag = !diag;
+            storedFaces.append(f3);
+            storedFaces.append(f4);
         }
     }
+
 }
 
 Varying WaterRenderer::shadeVertex(Vertex &vertex){
-    vertex.position.setZ(actY);
+    if (vertex.middle){
+        float sin = qSin(*vertex.iter);
+        vertex.position.setZ(sin);
+        vertex.color.setY((sin + 1.0)/2.0);
+        //vertex.color.setY(sin);
+    }
 
     return FilledRenderer::shadeVertex(vertex);
 }
